@@ -1,0 +1,8 @@
+jedi
+mypy
+black
+pylint
+pyyaml
+pytest
+coverage
+requests

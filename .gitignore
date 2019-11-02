@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# virtualenv
+venv
+
+# Testing
+.coverage
+.pytest_cache
+
+# aactivator
+.activate.sh
+.deactivate.sh
+
+# mypy
+.mypy_cache
+
+# tag files
+.pytags

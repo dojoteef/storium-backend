@@ -1,0 +1,9 @@
+version: '3.3'
+
+services:
+  backend:
+    ports:
+      - 8880:8000
+    image: figmentator:prod
+  tasks:
+    image: figmentator:prod

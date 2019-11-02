@@ -1,0 +1,14 @@
+version: '2.3'
+
+services:
+  backend:
+    build:
+      context: .
+    depends_on:
+      - cache
+    runtime: nvidia
+    environment:
+      - FIG_CACHE_URL=redis://cache
+      - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}
+  cache:
+    image: redis:5-alpine

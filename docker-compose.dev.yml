@@ -1,0 +1,16 @@
+version: '2.3'
+
+services:
+  backend:
+    build:
+      args:
+        - PIP_CMD=pip3 install -e
+    command: figment
+    ports:
+      - 8882:8000
+    image: figmentator:dev
+    volumes:
+      - .:/var/www/figmentator/
+    environment:
+      - DEBUG=1
+      - LOGLEVEL=debug
