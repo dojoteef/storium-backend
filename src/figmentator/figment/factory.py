@@ -2,6 +2,7 @@
 A factory that creates concrete Figmentator instances and also acts as a registry for
 getting the registered Figmentators.
 """
+import os
 import asyncio
 from typing import Any, Dict, Type, List, Optional
 from pkg_resources import (
@@ -71,7 +72,7 @@ parameters.
     # it thinks the method is a normal method that expects self, because validator
     # internally wraps it in a classmethod (which mypy apparently doesn't handle well).
     parse_cls = validator("cls", pre=True)(getattr(_parse_cls, "__func__"))
-    parse_requires = validator("requires", pre=True)(
+    parse_requires = validator("requires", pre=True, whole=True)(
         getattr(_parse_requires, "__func__")
     )
 
@@ -87,7 +88,7 @@ class FigmentatorFactorySettings(BaseSettings):
     """ Defines the settings for the figmentator factory """
 
     install_dir: str = Field(
-        "",
+        os.path.abspath(os.curdir),
         description="""
 The directory to install any additional requirements into. This directoy MUST be in
 sys.path or PYTHONPATH and must be writable by the user during execution of this app.
@@ -165,7 +166,7 @@ class FigmentatorFactory:
             [
                 "",
                 "easy_install",
-                "--install_dir",
+                "--install-dir",
                 self.settings.install_dir,
                 str(requirement),
             ]
