@@ -26,7 +26,7 @@ router.route_class = CompressibleRoute
 
 
 @router.post(
-    "{story_id}/new",
+    "/{story_id}/new",
     status_code=HTTP_200_OK,
     summary="Generate a figment",
     response_model=SceneEntry,
@@ -48,7 +48,7 @@ async def new(
     """
     cache = caches.get("default")
     story_data = await cache.get(f"{suggestion_type}:{story_id}")
-    if not story_data:
+    if story_data is None:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="Unknown story")
 
     context_dict: Dict[str, Any] = {"entry": entry, "data": story_data}

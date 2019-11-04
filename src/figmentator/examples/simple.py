@@ -1,24 +1,34 @@
 """
-This defines the base API required for all figmentators.
+A very basic example of a figmentator
 """
-from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
+from figmentator.figment.base import Figmentator
 from figmentator.models.figment import FigmentContext
 from figmentator.models.storium import SceneEntry
 from figmentator.models.suggestion import SuggestionType
 
+class SimpleFigmentator(Figmentator):
+    """
+    A dead simple figmentator that generates useless scene_entry suggestions
+    """
 
-class Figmentator(ABC):
-    """
-    An abstract class which defines the required operations of a generation model.
-    """
+    LOREM_IPSUM = """
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+"""
 
     def __init__(self, suggestion_type: SuggestionType):
-        """ Initialize the Figmentator """
-        self.suggestion_type = suggestion_type
+        """ Initialize the figmentator """
+        if suggestion_type is not SuggestionType.scene_entry:
+            raise ValueError("This figmentator can only generate scene entries!")
 
-    @abstractmethod
+        super().__init__(suggestion_type)
+
     def startup(self, properties: Optional[Dict[str, Any]] = None) -> bool:
         """
         This method should perform any necessary startup, such as loading the model
@@ -26,18 +36,15 @@ class Figmentator(ABC):
         preprocessing and suggestion generation. It should return whether it was able to
         successfully startup.
         """
-        raise NotImplementedError()
+        return True
 
-    @abstractmethod
     def shutdown(self) -> None:
         """
         This method should perform any necessary shutdown actions, such as releasing the
         model parameters. After this method completes, all resources used by the model
         should be released.
         """
-        raise NotImplementedError()
 
-    @abstractmethod
     def preprocess(
         self, story_snapshot: Dict[str, Any], data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
@@ -50,11 +57,19 @@ class Figmentator(ABC):
         - data: an optional dictionary of any previously preprocesed data from a
           previous snapshot of the same story
         """
-        raise NotImplementedError()
+        return story_snapshot
 
-    @abstractmethod
     def figmentate(self, contexts: List[FigmentContext]) -> List[SceneEntry]:
         """
         This method should generate a figment for each context in the list.
         """
-        raise NotImplementedError()
+        entries: List[SceneEntry] = []
+        for context in contexts:
+            entry = context.entry.copy()
+            if not entry.description:
+                entry.description = ""
+
+            entry.description += type(self).LOREM_IPSUM
+            entries.append(entry)
+
+        return entries

@@ -108,7 +108,7 @@ class FigmentScheduler:
         """ Shutdown the workers """
         if self.queue:
             # Wait until the queue is fully processed
-            self.queue.join()
+            await self.queue.join()
 
             # Cancel all our worker tasks
             for worker in self.workers:
@@ -126,7 +126,9 @@ class FigmentScheduler:
             tasks = [await self.queue.get()]
             while len(tasks) < self.settings.max_batch_size:
                 try:
-                    tasks.append(wait_for(self.queue.get(), self.settings.wait_time))
+                    tasks.append(
+                        await wait_for(self.queue.get(), self.settings.wait_time)
+                    )
                 except AsyncTimeoutError:
                     break
 
@@ -152,7 +154,7 @@ class FigmentScheduler:
             )
 
         future = self.loop.create_future()
-        self.queue.put((future, context))
+        await self.queue.put((future, context))
 
         return await future
 

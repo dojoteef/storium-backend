@@ -3,7 +3,7 @@ A factory that creates concrete Figmentator instances and also acts as a registr
 getting the registered Figmentators.
 """
 import asyncio
-from typing import Any, Dict, Type, List
+from typing import Any, Dict, Type, List, Optional
 from pkg_resources import (
     working_set,
     get_distribution,
@@ -25,20 +25,20 @@ class FigmentatorSettings(BaseModel):
     """ Defines the settings for an individual Figmentator """
 
     cls: EntryPoint = Field(
-        ...,
+        EntryPoint.parse("model=figmentator.examples.simple:SimpleFigmentator"),
         description="""
 The package path to a model class in the form of an EntryPoint as specified by:
 https://setuptools.readthedocs.io/en/latest/pkg_resources.html#creating-and-parsing
         """,
     )
     requires: List[Requirement] = Field(
-        ...,
+        [],
         description="""
 A list of required packaged as specified by:
 https://setuptools.readthedocs.io/en/latest/pkg_resources.html#requirements-parsing
 """,
     )
-    properties: Dict[str, Any] = Field(
+    properties: Optional[Dict[str, Any]] = Field(
         ...,
         description="""
 This is a dict of properties that will be passed to your model's startup method. It can
@@ -95,7 +95,7 @@ sys.path or PYTHONPATH and must be writable by the user during execution of this
     )
 
     figmentators: Dict[SuggestionType, FigmentatorSettings] = Field(
-        {},
+        {SuggestionType.scene_entry: FigmentatorSettings()},
         description="""
 A mapping of SuggestionType to settings for the associated Figmentator.
         """,
@@ -142,7 +142,7 @@ class FigmentatorFactory:
                 suggestion_type
             ]
 
-            with self.install_lock:
+            async with self.install_lock:
                 working_set.resolve(settings.requires, installer=self.installer)
 
                 try:

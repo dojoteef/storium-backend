@@ -41,4 +41,4 @@ async def snapshot(
     if not cache_updates:
         raise HTTPException(HTTP_406_NOT_ACCEPTABLE, "Unable to process story!")
 
-    gather(*cache_updates)
+    await gather(*cache_updates)
