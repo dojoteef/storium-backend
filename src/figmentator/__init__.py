@@ -3,12 +3,14 @@ Main entry point for figmentator. This is where we setup the app.
 """
 import os
 import urllib
+from typing import Any, Dict
 
 import aiocache
 from fastapi import FastAPI
 
 from figmentator.routers import story, figment
 from figmentator.utils.settings import Settings
+from figmentator.figment.scheduler import Figmentators
 
 
 app = FastAPI(debug=bool(int(os.environ.get("DEBUG", 0))))
@@ -21,7 +23,7 @@ app.include_router(figment.router, prefix="/figment", tags=["figment"])
 def initialize_caches():
     """ Initialize the cache """
     url = urllib.parse.urlparse(Settings.cache_url)
-    cache_config = dict(urllib.parse.parse_qsl(url.query))
+    cache_config: Dict[str, Any] = dict(urllib.parse.parse_qsl(url.query))
     cache_class = aiocache.Cache.get_scheme_class(url.scheme)
 
     if url.path:
@@ -37,8 +39,16 @@ def initialize_caches():
         cache_config["password"] = url.password
 
     if cache_class == aiocache.Cache.REDIS:
-        cache_config["serializer"] = "aiocache.serializers.JsonSerializer"
+        cache_config["cache"] = "aiocache.RedisCache"
+        cache_config["serializer"] = {"class": "aiocache.serializers.JsonSerializer"}
     elif cache_class == aiocache.Cache.MEMORY:
-        cache_config["serializer"] = "aiocache.serializers.NullSerializer"
+        cache_config["cache"] = "aiocache.SimpleMemoryCache"
+        cache_config["serializer"] = {"class": "aiocache.serializers.NullSerializer"}
 
     aiocache.caches.set_config({"default": cache_config})
+
+
+@app.on_event("startup")
+async def initialize_figmentators():
+    """ Initialize the configured figmentators """
+    await Figmentators.startup()
