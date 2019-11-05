@@ -17,11 +17,11 @@ class RangeUnits(AutoNamedEnum):
     in:
 
     - **words**: specify the range in words
-    - **tokens**: specify the range in tokens
+    - **chars**: specify the range in characters
     """
 
     words = auto()
-    tokens = auto()
+    chars = auto()
 
 
 SUBRANGE_REGEX_STR = r"((?<!=),)?(?P<start>\d+|(?!-(,|$)))-(?P<end>(\d+)?)"
@@ -50,7 +50,7 @@ class Range(BaseModel):
         Range: words=0-0
     """
 
-    unit: RangeUnits = Field(RangeUnits.tokens, description=RangeUnits.__doc__)
+    unit: RangeUnits = Field(RangeUnits.words, description=RangeUnits.__doc__)
     ranges: List[Subrange] = Field(
         ...,
         description="""
@@ -85,3 +85,24 @@ A list of subranges as specified in RFC7233 (https://tools.ietf.org/html/rfc7233
             )
 
         return super().validate(value)
+
+    def __str__(self):
+        """ Override the string method to return a range as specified by our regexes """
+        ranges = ",".join(
+            [
+                ("" if r.start is None else str(r.start))
+                + "-"
+                + ("" if r.end is None else str(r.end))
+                for r in self.ranges  # pylint:disable=not-an-iterable
+            ]
+        )
+        return f"{self.unit.value}={ranges}"  # pylint:disable=no-member
+
+    def is_finite(self) -> bool:
+        """ A method to determine if the range is a finite range """
+        if len(self.ranges) != 1:
+            return False
+
+        # pylint:disable=unsubscriptable-object
+        return self.ranges[0].start is not None and self.ranges[0].end is not None
+        # pylint:enable=unsubscriptable-object

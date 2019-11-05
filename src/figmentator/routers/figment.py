@@ -1,14 +1,16 @@
 """
 This router handles the suggestion endpoints.
 """
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from aiocache import caches
 from pydantic import ValidationError
 from fastapi import APIRouter, Body, Path, Query, HTTPException
 from starlette.requests import Request
+from starlette.responses import Response
 from starlette.status import (
     HTTP_200_OK,
+    HTTP_206_PARTIAL_CONTENT,
     HTTP_404_NOT_FOUND,
     HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE,
 )
@@ -33,10 +35,11 @@ router.route_class = CompressibleRoute
 )
 async def new(
     request: Request,
+    response: Response,
     story_id: str = Path(
         ..., description="""The id of the story to generate the figment for."""
     ),
-    entry: SceneEntry = Body(
+    entry: Optional[SceneEntry] = Body(
         ..., description="""The current entry representing the move in progress"""
     ),
     suggestion_type: SuggestionType = Query(
@@ -57,10 +60,14 @@ async def new(
         if figment_range:
             context_dict["range"] = Range.validate(figment_range)
     except ValidationError:
-        return HTTPException(
+        raise HTTPException(
             HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE, "Invalid range specified!"
         )
 
-    return await Figmentators.figmentate(
-        suggestion_type, FigmentContext(**context_dict)
-    )
+    context = FigmentContext(**context_dict)
+    entry = await Figmentators.figmentate(suggestion_type, context)
+
+    if context.range and not context.range.is_finite():  # pylint:disable=no-member
+        response.status_code = HTTP_206_PARTIAL_CONTENT
+
+    return entry
