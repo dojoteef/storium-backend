@@ -1,9 +1,7 @@
-version: '3.3'
+version: '2.3'
 
 services:
   backend:
     ports:
       - 8881:8000
-    image: figmentator:stage
-  tasks:
     image: figmentator:stage

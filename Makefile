@@ -22,7 +22,7 @@ test: install-dev
 	. venv/bin/activate; coverage run -m pytest -v
 
 clean:
-	rm -rf venv build .pytest_cache .activate.sh .mypy_cache
+	rm -rf venv .pytest_cache .activate.sh .mypy_cache
 	find . -iname "*.pyc" -delete
 
 build-%: src docker-compose.shared.yml docker-compose.%.yml
@@ -47,7 +47,7 @@ shutdown-%:
 shutdown-dev:
 	# make a specialized shutdown for dev which removes volumes
 	test -f build/dev/docker-compose.yml && \
-		docker-compose -p figmentator_$* -f build/dev/docker-compose.yml down -v --remove-orphans || true
+		docker-compose -p figmentator_dev -f build/dev/docker-compose.yml down -v --remove-orphans || true
 
 run-%-shell:
 	docker-compose -p figmentator_$* -f build/$*/docker-compose.yml run backend sh
