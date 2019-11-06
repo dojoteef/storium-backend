@@ -138,7 +138,9 @@ feugiat in, orci. In hac habitasse platea dictumst."""
                     logging.warning("Failed to generate text.")
                     continue
 
-                range_end = index + entry_range.end
+                range_end = (
+                    entry_range.end if entry_range.start else index + entry_range.end
+                )
                 new_text = text[index:range_end]
 
                 past_end = range_end - len(text)
