@@ -24,3 +24,6 @@ venv
 
 # tag files
 .pytags
+
+# site specific yaml
+docker-compose.env.yml

@@ -29,6 +29,7 @@ build-%: src docker-compose.shared.yml docker-compose.%.yml
 	test -d build/$* && rm -rf build/$* || true
 	mkdir -p build/$*
 	docker-compose \
+		$$(test -f docker-compose.env.yml && echo -f docker-compose.env.yml || echo "") \
 		-f docker-compose.shared.yml \
 		-f docker-compose.$*.yml \
 		config > build/$*/docker-compose.yml

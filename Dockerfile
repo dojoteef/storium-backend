@@ -84,6 +84,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python3
 # Create a user and group that actually run the app, so we aren't running as root
 RUN addgroup --system fig && adduser --system fig --ingroup fig --home /home/fig
 
+# Create a location for the model installation
+RUN mkdir /var/lib/figmentator && chown fig:fig /var/lib/figmentator
+
 # Tell docker that all future commands should run as the fig user
 USER fig
 CMD figment
