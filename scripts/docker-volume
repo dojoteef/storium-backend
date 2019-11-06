@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+export LANG=C
+
+set -e
+
+usage()
+{
+  cat <<EOF
+USAGE: $0 [-h] [cp|rm|ls] [-V VOLUME] [-v|-q] [FILE ...]
+
+ -h             Show this help and exit
+ -V             The volume to bind
+EOF
+  exit "$1"
+}
+
+CMD=$1
+if [[ "$CMD" != "cp" && "$CMD" != "rm" && "$CMD" != "ls" ]]; then
+  usage 1
+fi
+shift
+
+while getopts 'hqvV:' o; do
+  case "$o" in
+    h)  usage 0;;
+    q)  set +x;;
+    V)  VOLUME="$OPTARG";;
+    v)  set -x;;
+    *)  usage 1 >&2;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$VOLUME" ] || [[ -z "$*" && "$CMD" != "ls" ]]; then
+  usage 1
+fi
+
+if [ "$CMD" == "cp" ]; then
+  docker run --rm -v "$PWD":/source -v "$VOLUME":/dest -w /source alpine cp $* /dest
+fi
+
+if [ "$CMD" == "rm" ]; then
+  files=($(for f in "${@}"; do [[ -f $f ]] & echo "/dest/$f"; done))
+  docker run --rm -v "$VOLUME":/dest -w /source alpine rm ${files[*]}
+fi
+
+if [ "$CMD" == "ls" ]; then
+  docker run --rm -v "$VOLUME":/dest -w /source alpine ls /dest
+fi
