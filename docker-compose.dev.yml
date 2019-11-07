@@ -6,7 +6,7 @@ services:
       args:
         - PIP_CMD=pip3 install -e
     ports:
-      - 8882:8000
+      - 8882:8800
     image: figmentator:dev
     volumes:
       - .:/var/www/figmentator/

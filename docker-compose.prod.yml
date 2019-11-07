@@ -3,5 +3,5 @@ version: '2.3'
 services:
   backend:
     ports:
-      - 8880:8000
+      - 8880:8800
     image: figmentator:prod
