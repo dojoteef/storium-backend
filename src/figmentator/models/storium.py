@@ -84,7 +84,7 @@ class RoleStr(ConstrainedStr):
     https://github.com/samuelcolvin/pydantic/issues/239#issuecomment-409644889
     """
 
-    regex = re.compile(r"narrator|character\d+")
+    regex = re.compile(r"narrator|character:\d+")
 
 
 class CardId(str):
