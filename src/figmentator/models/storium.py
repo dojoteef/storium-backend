@@ -351,7 +351,7 @@ class Card(BaseModel):
         the game.""",
     )
 
-    stack_size: int = Field(
+    stack_size: Optional[int] = Field(
         ...,
         description="""When a card is represented as a stack of cards, e.g. the user has
         more than one of them, or a stack is played for pickup, this is the count of the
