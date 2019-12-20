@@ -93,15 +93,15 @@ feugiat in, orci. In hac habitasse platea dictumst."""
         """
 
     def preprocess(
-        self, story_snapshot: Dict[str, Any], data: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, story_snapshot: Dict[str, Any], data: Optional[Any] = None
+    ) -> Any:
         """
         This method should perform any preprocessing required on the story needed before
-        generating suggestions. It must return a dictionary representing the
-        preprocessed story. This dictionary will be provided to the figmentate method.
+        generating suggestions. It should return an object representing the
+        preprocessed story. This object will be provided to the figmentate method.
 
         - story: A story as specified in https://storium.com/help/export/json/0.9.2
-        - data: an optional dictionary of any previously preprocesed data from a
+        - data: an optional object representing any previously preprocesed data from a
           previous snapshot of the same story
         """
         time.sleep(self.preprocess_time)  # simulate slow preprocessing

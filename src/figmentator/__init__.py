@@ -40,7 +40,7 @@ def initialize_caches():
 
     if cache_class == aiocache.Cache.REDIS:
         cache_config["cache"] = "aiocache.RedisCache"
-        cache_config["serializer"] = {"class": "aiocache.serializers.JsonSerializer"}
+        cache_config["serializer"] = {"class": "aiocache.serializers.PickleSerializer"}
     elif cache_class == aiocache.Cache.MEMORY:
         cache_config["cache"] = "aiocache.SimpleMemoryCache"
         cache_config["serializer"] = {"class": "aiocache.serializers.NullSerializer"}

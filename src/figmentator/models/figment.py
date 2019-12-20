@@ -1,7 +1,7 @@
 """
 Figment related models
 """
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -24,6 +24,6 @@ class FigmentContext(BaseModel):
         ...,
         description="""The scene entry to modify in order to generate a suggestion""",
     )
-    data: Dict[str, Any] = Field(
+    data: Any = Field(
         ..., description="""The preprocessed story data created by this figmentator""",
     )
