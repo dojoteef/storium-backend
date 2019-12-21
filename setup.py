@@ -20,7 +20,7 @@ setup(
     python_requires=">=3.6",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    scripts=["scripts/figment"],
+    scripts=["scripts/figment", "scripts/docker-volume"],
     install_requires=[
         "aiocache",
         "fastapi",
