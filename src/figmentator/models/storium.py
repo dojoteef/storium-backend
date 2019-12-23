@@ -62,7 +62,7 @@ import re
 from enum import auto
 from typing import List, Union, Optional
 
-from pydantic import BaseModel, UrlStr, ConstrainedStr
+from pydantic import BaseModel, AnyHttpUrl, ConstrainedStr
 
 from figmentator.models.utils import AutoNamedEnum, Field, Datetime, EmptyStr
 
@@ -202,12 +202,12 @@ class Image(BaseModel):
     format](https://storium.com/help/export/json/0.9.2).
     """
 
-    url: Optional[UrlStr] = Field(
+    url: Optional[AnyHttpUrl] = Field(
         None,
         description="""Url to image asset, usually to a default stock image unless the
         user uploaded/chose a different one. Can be null when no image present.""",
     )
-    attribution_url: Optional[Union[UrlStr, EmptyStr]] = Field(
+    attribution_url: Optional[Union[AnyHttpUrl, EmptyStr]] = Field(
         None, description="Url to an attributed source."
     )
     attribution_text: Optional[Union[str, EmptyStr]] = Field(

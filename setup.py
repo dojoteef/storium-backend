@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 
 EXTRAS_REQUIRE = {}
-EXTRAS_REQUIRE["redis"] = ["aioredis"]
+EXTRAS_REQUIRE["redis"] = ["aioredis==1.3.1"]
 
 
 setup(
@@ -22,12 +22,13 @@ setup(
     packages=find_packages("src"),
     scripts=["scripts/figment", "scripts/docker-volume"],
     install_requires=[
-        "aiocache",
-        "fastapi",
-        "uvicorn",
-        "gunicorn",
-        "async-generator;python_version<'3.7'",
-        "async-exit-stack;python_version<'3.7'",
+        "aiocache==0.11.1",
+        "pydantic==1.1.1",
+        "fastapi==0.45.0",
+        "uvicorn==0.10.3",
+        "gunicorn==19.9.0",
+        "async-generator==1.10;python_version<'3.7'",
+        "async-exit-stack==1.0.1;python_version<'3.7'",
     ],
     extras_require=EXTRAS_REQUIRE,
 )

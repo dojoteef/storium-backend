@@ -7,24 +7,48 @@ set -e
 usage()
 {
   cat <<EOF
-USAGE: $0 [-h] [cp|rm|ls] [-V VOLUME] [-v|-q] [FILE ...]
+USAGE: $0 [-h] [cp|rm|ls|term] [-R] [-s SOURCE] [-t TARGET] [-u USER] [-V VOLUME] [-v|-q] [FILE ...]
+
+Commands:
+ cp             Copy files
+ rm             Remove files
+ ls             List files
+ term           Open terminal with /source and /dest mapped
+
+Options:
 
  -h             Show this help and exit
+ -q             Quiet output
+ -R             Recursive
+ -s             Source directory
+ -t             Target directory
+ -u             The user to login as
+ -v             Verbose output
  -V             The volume to bind
 EOF
   exit "$1"
 }
 
 CMD=$1
-if [[ "$CMD" != "cp" && "$CMD" != "rm" && "$CMD" != "ls" ]]; then
+if [[ "$CMD" != "cp" && "$CMD" != "rm" && "$CMD" != "ls" && "$CMD" != "term" ]]; then
   usage 1
 fi
 shift
 
-while getopts 'hqvV:' o; do
+# Defaults
+TARGET=""
+SOURCE="$PWD"
+OPTS=""
+USER="root"
+
+while getopts 'hqRs:t:u:V:v' o; do
   case "$o" in
     h)  usage 0;;
     q)  set +x;;
+    R)  OPTS="-R";;
+    s)  SOURCE="$OPTARG";;
+    t)  TARGET="$OPTARG";;
+    u)  USER="$OPTARG";;
     V)  VOLUME="$OPTARG";;
     v)  set -x;;
     *)  usage 1 >&2;;
@@ -32,19 +56,28 @@ while getopts 'hqvV:' o; do
 done
 shift $((OPTIND - 1))
 
-if [ -z "$VOLUME" ] || [[ -z "$*" && "$CMD" != "ls" ]]; then
+if [ -z "$VOLUME" ] || [[ -z "$*" && ( "$CMD" != "ls" && "$CMD" != "term" ) ]]; then
   usage 1
 fi
 
 if [ "$CMD" == "cp" ]; then
-  docker run --rm -v "$PWD":/source -v "$VOLUME":/dest -w /source alpine cp $* /dest
+  readarray -t files < <(for f in "${@}"; do [[ -e "$SOURCE/$f" ]] && echo "/source/$f"; done)
+  docker run --rm -u "$USER" -v "$SOURCE":/source -v "$VOLUME":/dest -w /source alpine cp -L $OPTS "${files[@]}" "/dest/$TARGET"
 fi
 
 if [ "$CMD" == "rm" ]; then
-  files=($(for f in "${@}"; do [[ -f $f ]] & echo "/dest/$f"; done))
-  docker run --rm -v "$VOLUME":/dest -w /source alpine rm ${files[*]}
+  readarray -t files < <(for f in "${@}"; do echo "/dest/$f"; done)
+  docker run --rm -u "$USER" -v "$VOLUME":/dest -w /source alpine rm $OPTS "${files[@]}"
 fi
 
 if [ "$CMD" == "ls" ]; then
-  docker run --rm -v "$VOLUME":/dest -w /source alpine ls /dest
+  readarray -t files < <(for f in "${@}"; do echo "/dest/$f"; done)
+  if [[ ${#files[*]} -eq 0 ]]; then
+    files=("/dest")
+  fi
+  docker run --rm -u "$USER" -v "$VOLUME":/dest alpine ls -la $OPTS "${files[@]}"
+fi
+
+if [ "$CMD" == "term" ]; then
+  docker run --rm -it -u "$USER" -v "$SOURCE":/source -v "$VOLUME":/dest alpine sh
 fi
