@@ -53,8 +53,11 @@ class Figmentator(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def figmentate(self, contexts: List[FigmentContext]) -> List[SceneEntry]:
+    def figmentate(self, contexts: List[FigmentContext]) -> List[Optional[SceneEntry]]:
         """
         This method should generate a figment for each context in the list.
+
+        It returns a list of scene entries with the suggestion filled in or
+        None.
         """
         raise NotImplementedError()

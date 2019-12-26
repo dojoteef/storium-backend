@@ -3,7 +3,7 @@ This module implements an asyncio based scheduler for generating figments. It ba
 the desire for batching versus the need to generate realtime results. It does so by
 having a threshold for how long to wait to collect a batch before executing the model.
 """
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from asyncio import (
     Queue,
     gather,
@@ -144,7 +144,7 @@ class FigmentScheduler:
                 # Need to notify the task queue for each item in the batch
                 self.queue.task_done()
 
-    async def figmentate(self, context: FigmentContext) -> SceneEntry:
+    async def figmentate(self, context: FigmentContext) -> Optional[SceneEntry]:
         """
         Schedule the figmentator to run and return the result.
         """
@@ -195,7 +195,7 @@ class _FigmentSchedulerCollection:
 
     async def figmentate(
         self, suggestion_type: SuggestionType, context: FigmentContext
-    ) -> SceneEntry:
+    ) -> Optional[SceneEntry]:
         """
         Schedule the figmentator to run and return the result.
         """

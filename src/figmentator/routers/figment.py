@@ -12,6 +12,7 @@ from starlette.status import (
     HTTP_200_OK,
     HTTP_206_PARTIAL_CONTENT,
     HTTP_404_NOT_FOUND,
+    HTTP_406_NOT_ACCEPTABLE,
     HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE,
 )
 
@@ -66,6 +67,8 @@ async def new(
 
     context = FigmentContext(**context_dict)
     entry = await Figmentators.figmentate(suggestion_type, context)
+    if entry is None:
+        raise HTTPException(HTTP_406_NOT_ACCEPTABLE, "Unable to generate suggestion!")
 
     if context.range and not context.range.is_finite():  # pylint:disable=no-member
         response.status_code = HTTP_206_PARTIAL_CONTENT

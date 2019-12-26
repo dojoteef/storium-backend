@@ -107,13 +107,16 @@ feugiat in, orci. In hac habitasse platea dictumst."""
         time.sleep(self.preprocess_time)  # simulate slow preprocessing
         return story_snapshot
 
-    def figmentate(self, contexts: List[FigmentContext]) -> List[SceneEntry]:
+    def figmentate(self, contexts: List[FigmentContext]) -> List[Optional[SceneEntry]]:
         """
         This method should generate a figment for each context in the list.
         """
         entries: List[SceneEntry] = []
+        all_entries: List[Optional[SceneEntry]] = []
         for context in contexts:
             entry = context.entry.copy()
+            all_entries.append(None)
+
             if not entry.description:
                 entry.description = ""
 
@@ -161,6 +164,7 @@ feugiat in, orci. In hac habitasse platea dictumst."""
 
             entry.description += text
             entries.append(entry)
+            all_entries[-1] = entry
 
         time.sleep(self.generation_time)  # simulate a slow generation process
-        return entries
+        return all_entries

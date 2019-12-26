@@ -16,5 +16,8 @@ services:
       - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}
   cache:
     image: redis:5-alpine
+    volumes:
+      - redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 volumes:
   figmentator-data:
