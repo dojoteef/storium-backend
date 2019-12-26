@@ -1,3 +1,5 @@
+NAME?=figmentator
+
 .PHONY: test $(wildcard build-%) $(wildcard shutdown-%) \
 	$(wildcard deploy-%) $(wildcard redeploy-%)
 
@@ -33,22 +35,22 @@ build-%: src docker-compose.shared.yml docker-compose.%.yml
 		-f docker-compose.shared.yml \
 		-f docker-compose.$*.yml \
 		config > build/$*/docker-compose.yml
-	docker-compose -p figmentator_$* -f build/$*/docker-compose.yml build
+	docker-compose -p $(NAME)_$* -f build/$*/docker-compose.yml build
 
 redeploy-%: shutdown-% build-%
-	docker-compose -p figmentator_$* -f build/$*/docker-compose.yml up -d
+	docker-compose -p $(NAME)_$* -f build/$*/docker-compose.yml up -d
 
 deploy-%:
-	docker-compose -p figmentator_$* -f build/$*/docker-compose.yml up -d
+	docker-compose -p $(NAME)_$* -f build/$*/docker-compose.yml up -d
 
 shutdown-%:
 	test -f build/$*/docker-compose.yml && \
-		docker-compose -p figmentator_$* -f build/$*/docker-compose.yml down --remove-orphans || true
+		docker-compose -p $(NAME)_$* -f build/$*/docker-compose.yml down --remove-orphans || true
 
 shutdown-dev:
 	# make a specialized shutdown for dev which removes volumes
 	test -f build/dev/docker-compose.yml && \
-		docker-compose -p figmentator_dev -f build/dev/docker-compose.yml down -v --remove-orphans || true
+		docker-compose -p $(NAME)_dev -f build/dev/docker-compose.yml down -v --remove-orphans || true
 
 run-%-shell:
-	docker-compose -p figmentator_$* -f build/$*/docker-compose.yml run backend sh
+	docker-compose -p $(NAME)_$* -f build/$*/docker-compose.yml run backend sh

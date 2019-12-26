@@ -3,7 +3,7 @@ version: '2.3'
 services:
   backend:
     ports:
-      - 8881:8800
-    image: figmentator:stage
+      - ${PORT:-8881}:8800
+    image: ${NAME:-figmentator}:stage
     environment:
       - LOGLEVEL=debug
