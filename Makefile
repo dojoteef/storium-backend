@@ -1,3 +1,4 @@
+-include .env
 NAME?=figmentator
 
 .PHONY: test $(wildcard build-%) $(wildcard shutdown-%) \
