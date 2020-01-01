@@ -8,8 +8,7 @@ venv:
 	# Need to install pip separately into the venv for Debian/Ubuntu systems
 	test -d venv || { python3 -m venv venv --without-pip && . venv/bin/activate; \
 		wget https://bootstrap.pypa.io/get-pip.py -O venv/bin/get-pip.py && \
-		chmod u+x venv/bin/get-pip.py && venv/bin/get-pip.py; \
-		pip install docker-compose==1.24.1; }
+		chmod u+x venv/bin/get-pip.py && venv/bin/get-pip.py; }
 	ls .activate.sh > /dev/null || ln -s venv/bin/activate .activate.sh
 	echo "deactivate" > .deactivate.sh
 
