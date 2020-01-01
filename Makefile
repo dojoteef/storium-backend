@@ -12,20 +12,23 @@ venv:
 	ls .activate.sh > /dev/null || ln -s venv/bin/activate .activate.sh
 	echo "deactivate" > .deactivate.sh
 
-install: venv
-	. venv/bin/activate; pip install -e .
+source-venv: venv
+	. venv/bin/activate
+
+install: source-venv
+	pip install -e .
 
 install-dev: install requirements-dev.txt
-	. venv/bin/activate; pip install -r requirements-dev.txt
+	pip install -r requirements-dev.txt
 
 install-deploy: install requirements-deploy.txt
-	. venv/bin/activate; pip install -r requirements-deploy.txt
+	pip install -r requirements-deploy.txt
 
 lint: install-dev
-	. venv/bin/activate; mypy src && pylint src
+	mypy src && pylint src
 
 test: install-dev
-	. venv/bin/activate; coverage run -m pytest -v
+	coverage run -m pytest -v
 
 clean:
 	rm -rf venv .pytest_cache .activate.sh .mypy_cache
