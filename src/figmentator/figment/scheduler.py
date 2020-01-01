@@ -3,6 +3,7 @@ This module implements an asyncio based scheduler for generating figments. It ba
 the desire for batching versus the need to generate realtime results. It does so by
 having a threshold for how long to wait to collect a batch before executing the model.
 """
+import logging
 from typing import Any, Dict, List, Optional
 from asyncio import (
     Queue,
@@ -26,22 +27,6 @@ from figmentator.figment.factory import get_figmentator
 from figmentator.utils import camel_case, snake_case
 
 
-class SchedulerSettings(BaseSettings):
-    """ A class representing scheduler settings per suggestion type """
-
-    wait_time: float = Field(
-        0.1, description="""How many seconds to wait to accumulate a batch"""
-    )
-
-    max_batch_size: int = Field(
-        10, description="""The maximum batch size for any single generator to run"""
-    )
-
-    num_workers: int = Field(
-        3, description="""How many workers will process batches concurrently""",
-    )
-
-
 class _SettingsFactory:
     """
     This class automatically creates a unique settings class for each suggestion type
@@ -51,21 +36,37 @@ class _SettingsFactory:
         """
         Loop through all suggestion types and create a class for each suggestion type
         """
-        self.settings: Dict[SuggestionType, SchedulerSettings] = {}
+        self.settings: Dict[SuggestionType, BaseSettings] = {}
         for suggestion_type in SuggestionType:
             settings_cls = type(
-                camel_case(suggestion_type.value) + SchedulerSettings.__name__,
-                (SchedulerSettings,),
+                camel_case(suggestion_type.value) + "SchedulerSettings",
+                (BaseSettings,),
                 {
                     "Config": type(
                         "Config",
-                        (object,),
+                        (BaseSettings.Config,),
                         {
                             "env_prefix": "FIG_SCHEDULER_"
                             + snake_case(suggestion_type).upper()
                             + "_"
                         },
-                    )
+                    ),
+                    "__annotations__": {
+                        "wait_time": float,
+                        "max_batch_size": int,
+                        "num_workers": int,
+                    },
+                    "wait_time": Field(
+                        0.1,
+                        description="How many seconds to wait to accumulate a batch",
+                    ),
+                    "max_batch_size": Field(
+                        10, description="The maximum batch size to generate at once"
+                    ),
+                    "num_workers": Field(
+                        3,
+                        description="How many workers can process batches concurrently",
+                    ),
                 },
             )
 
@@ -93,6 +94,7 @@ class FigmentScheduler:
 
         self.suggestion_type = suggestion_type
         self.settings = _FigmentatorSchedulerSettings.settings[suggestion_type]
+        logging.info("Using settings: %s", self.settings.json())
 
     async def startup(self, figmentator: Figmentator):
         """ Initialize the workers """
@@ -101,7 +103,8 @@ class FigmentScheduler:
         self.figmentator = figmentator
 
         self.workers = [
-            ensure_future(self.main_loop()) for _ in range(self.settings.num_workers)
+            ensure_future(self.main_loop())
+            for _ in range(self.settings.num_workers)  # type:ignore
         ]
 
     async def shutdown(self):
@@ -124,10 +127,12 @@ class FigmentScheduler:
         """ Consume a batch of tasks and execute them """
         while True:
             tasks = [await self.queue.get()]
-            while len(tasks) < self.settings.max_batch_size:
+            while len(tasks) < self.settings.max_batch_size:  # type:ignore
                 try:
                     tasks.append(
-                        await wait_for(self.queue.get(), self.settings.wait_time)
+                        await wait_for(
+                            self.queue.get(), self.settings.wait_time  # type:ignore
+                        )
                     )
                 except AsyncTimeoutError:
                     break

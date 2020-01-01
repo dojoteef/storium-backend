@@ -27,3 +27,4 @@ venv
 
 # site specific yaml
 docker-compose.env.yml
+.env

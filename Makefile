@@ -8,7 +8,8 @@ venv:
 	# Need to install pip separately into the venv for Debian/Ubuntu systems
 	test -d venv || { python3 -m venv venv --without-pip && . venv/bin/activate; \
 		wget https://bootstrap.pypa.io/get-pip.py -O venv/bin/get-pip.py && \
-		chmod u+x venv/bin/get-pip.py && venv/bin/get-pip.py; }
+		chmod u+x venv/bin/get-pip.py && venv/bin/get-pip.py; \
+		pip install docker-compose==1.24.1; }
 	ls .activate.sh > /dev/null || ln -s venv/bin/activate .activate.sh
 	echo "deactivate" > .deactivate.sh
 
@@ -17,6 +18,9 @@ install: venv
 
 install-dev: install requirements-dev.txt
 	. venv/bin/activate; pip install -r requirements-dev.txt
+
+install-deploy: install requirements-deploy.txt
+	. venv/bin/activate; pip install -r requirements-deploy.txt
 
 lint: install-dev
 	. venv/bin/activate; mypy src && pylint src
@@ -28,7 +32,7 @@ clean:
 	rm -rf venv .pytest_cache .activate.sh .mypy_cache
 	find . -iname "*.pyc" -delete
 
-build-%: src docker-compose.shared.yml docker-compose.%.yml
+build-%: src install-deploy docker-compose.shared.yml docker-compose.%.yml
 	test -d build/$* && rm -rf build/$* || true
 	mkdir -p build/$*
 	docker-compose \
