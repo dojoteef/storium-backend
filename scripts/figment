@@ -3,6 +3,7 @@
 PORT="${PORT:-8800}"
 HOST="${HOST:-0.0.0.0}"
 WORKERS="${WORKERS:-1}"
+TIMEOUT="${TIMEOUT:-30}"
 LOGLEVEL="${LOGLEVEL:-info}"
 
 if [ $DEBUG ]; then
@@ -12,5 +13,5 @@ if [ $DEBUG ]; then
   # the moment.
   uvicorn figmentator:app --reload --host $HOST --port $PORT --log-level $LOGLEVEL
 else
-  gunicorn -k uvicorn.workers.UvicornWorker -b "$HOST:$PORT" figmentator:app -w $WORKERS --log-level $LOGLEVEL
+  gunicorn -k uvicorn.workers.UvicornWorker -b "$HOST:$PORT" figmentator:app -w $WORKERS --log-level $LOGLEVEL -t $TIMEOUT
 fi
