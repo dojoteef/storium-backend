@@ -67,7 +67,7 @@ fi
 
 if [ "$CMD" == "rm" ]; then
   readarray -t files < <(for f in "${@}"; do echo "/dest/$f"; done)
-  docker run --rm -u "$USER" -v "$VOLUME":/dest -w /source alpine rm $OPTS "${files[@]}"
+  docker run --rm -u "$USER" -v "$VOLUME":/dest -w /source alpine sh -c "rm $OPTS ${files[*]}"
 fi
 
 if [ "$CMD" == "ls" ]; then
@@ -75,7 +75,7 @@ if [ "$CMD" == "ls" ]; then
   if [[ ${#files[*]} -eq 0 ]]; then
     files=("/dest")
   fi
-  docker run --rm -u "$USER" -v "$VOLUME":/dest alpine ls -la $OPTS "${files[@]}"
+  docker run --rm -u "$USER" -v "$VOLUME":/dest alpine sh -c "ls -la $OPTS ${files[*]}"
 fi
 
 if [ "$CMD" == "term" ]; then

@@ -16,12 +16,11 @@ from asyncio import (
 from asyncio.futures import Future
 from asyncio.events import AbstractEventLoop
 
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 
 from figmentator.models.figment import FigmentContext
 from figmentator.models.storium import SceneEntry
 from figmentator.models.suggestion import SuggestionType
-from figmentator.models.utils import Field
 from figmentator.figment.base import Figmentator
 from figmentator.figment.factory import get_figmentator
 from figmentator.utils import camel_case, snake_case

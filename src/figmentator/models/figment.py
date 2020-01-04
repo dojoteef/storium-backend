@@ -3,11 +3,10 @@ Figment related models
 """
 from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from figmentator.models.range import Range
 from figmentator.models.storium import SceneEntry
-from figmentator.models.utils import Field
 
 
 class FigmentContext(BaseModel):

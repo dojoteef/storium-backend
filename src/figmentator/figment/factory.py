@@ -14,11 +14,10 @@ from pkg_resources import (
 )
 from setuptools import setup
 
-from pydantic import BaseModel, BaseSettings, validator
+from pydantic import BaseModel, BaseSettings, Field, validator
 
 from figmentator.figment.base import Figmentator
 from figmentator.models.suggestion import SuggestionType
-from figmentator.models.utils import Field
 from figmentator.utils import shadow_argv
 
 

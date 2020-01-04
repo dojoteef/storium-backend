@@ -5,10 +5,10 @@ import re
 from enum import auto
 from typing import Any, List, Optional, Type
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 
-from figmentator.models.utils import Field, AutoNamedEnum
+from figmentator.models.utils import AutoNamedEnum
 
 
 class RangeUnits(AutoNamedEnum):
@@ -52,7 +52,7 @@ class Range(BaseModel):
 
     unit: RangeUnits = Field(RangeUnits.words, description=RangeUnits.__doc__)
     ranges: List[Subrange] = Field(
-        ...,
+        [],
         description="""
 A list of subranges as specified in RFC7233 (https://tools.ietf.org/html/rfc7233)
         """,

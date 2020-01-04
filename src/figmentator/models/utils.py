@@ -31,15 +31,6 @@ class AutoNamedEnum(str, Enum):
     # pylint:enable=unused-argument,no-self-argument
 
 
-def Field(*args, **kwargs) -> Any:
-    """
-    A workaround to make mypy happy until the following is fixed:
-
-    https://github.com/samuelcolvin/pydantic/issues/577
-    """
-    return Schema(*args, **kwargs)
-
-
 class Datetime(str):
     """ Datetime in the format specified by Storium """
 

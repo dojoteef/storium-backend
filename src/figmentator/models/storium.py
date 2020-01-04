@@ -62,9 +62,9 @@ import re
 from enum import auto
 from typing import List, Union, Optional
 
-from pydantic import BaseModel, AnyHttpUrl, ConstrainedStr
+from pydantic import BaseModel, Field, AnyHttpUrl, ConstrainedStr
 
-from figmentator.models.utils import AutoNamedEnum, Field, Datetime, EmptyStr
+from figmentator.models.utils import AutoNamedEnum, Datetime, EmptyStr
 
 
 class UnchangedStr(ConstrainedStr):
