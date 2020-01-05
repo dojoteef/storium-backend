@@ -6,7 +6,7 @@ from enum import Enum
 from datetime import datetime, timezone
 from typing import Any, Dict, Union
 
-from pydantic import Schema, ConstrainedStr, Json as _Json, datetime_parse
+from pydantic import ConstrainedStr, Json as _Json, datetime_parse
 
 
 Json = Union[_Json, Dict[str, Any]]

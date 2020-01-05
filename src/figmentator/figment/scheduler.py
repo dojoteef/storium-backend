@@ -137,16 +137,24 @@ class FigmentScheduler:
                     break
 
             futures, batch = zip(*tasks)
-            results = await self.loop.run_in_executor(
-                None, self.figmentator.figmentate, batch
-            )
+            try:
+                results = await self.loop.run_in_executor(
+                    None, self.figmentator.figmentate, batch
+                )
 
-            for future, result in zip(futures, results):
-                # Set the result of the future
-                future.set_result(result)
+                for future, result in zip(futures, results):
+                    # Set the result of the future
+                    future.set_result(result)
 
-                # Need to notify the task queue for each item in the batch
-                self.queue.task_done()
+                    # Need to notify the task queue for each item in the batch
+                    self.queue.task_done()
+            except Exception as e:  # pylint:disable=broad-except
+                for future in futures:
+                    # Set the exception on the future
+                    future.set_exception(e)
+
+                    # Need to notify the task queue for each item in the batch
+                    self.queue.task_done()
 
     async def figmentate(self, context: FigmentContext) -> Optional[SceneEntry]:
         """
