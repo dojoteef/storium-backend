@@ -6,12 +6,4 @@ WORKERS="${WORKERS:-1}"
 TIMEOUT="${TIMEOUT:-30}"
 LOGLEVEL="${LOGLEVEL:-info}"
 
-if [ $DEBUG ]; then
-  # Can't seem to get gunicorn to reload more than once, so fallback to using
-  # uvicorn directly. This is fine since it's only during development. I
-  # imagine it is a bug in gunicorn, but I don't feel like figuring that out at
-  # the moment.
-  uvicorn figmentator:app --reload --host $HOST --port $PORT --log-level $LOGLEVEL
-else
-  gunicorn -k uvicorn.workers.UvicornWorker -b "$HOST:$PORT" figmentator:app -w $WORKERS --log-level $LOGLEVEL -t $TIMEOUT
-fi
+uvicorn figmentator:app --reload --host $HOST --port $PORT --log-level $LOGLEVEL
