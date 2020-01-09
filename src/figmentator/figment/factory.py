@@ -3,7 +3,7 @@ A factory that creates concrete Figmentator instances and also acts as a registr
 getting the registered Figmentators.
 """
 import os
-import asyncio
+from asyncio import get_event_loop, Lock
 from typing import Any, Dict, Type, List, Optional
 from pkg_resources import (
     working_set,
@@ -117,8 +117,9 @@ class FigmentatorFactory:
 
     def __init__(self):
         """ Create the factory """
+        self.lock = Lock()
+        self.loop = get_event_loop()
         self.figmentators_by_type = {}
-        self.install_lock = asyncio.Lock()
         self.settings = FigmentatorFactorySettings()
 
     @property
@@ -131,19 +132,23 @@ class FigmentatorFactory:
         Get a Figmentator by it's type. If there are valid settings for a
         Figmentator it will instatiate it (and install any needed requirements.
         """
-        if suggestion_type not in self.figmentators_by_type:
-            if (
-                suggestion_type
-                not in self.settings.figmentators  # pylint:disable=unsupported-membership-test
-            ):
-                raise ValueError(f"Cannot create Figmentator of type {suggestion_type}")
+        async with self.lock:
+            if suggestion_type not in self.figmentators_by_type:
+                if (
+                    suggestion_type
+                    not in self.settings.figmentators  # pylint:disable=unsupported-membership-test
+                ):
+                    raise ValueError(
+                        f"Cannot create Figmentator of type {suggestion_type}"
+                    )
 
-            settings = self.settings.figmentators[  # pylint:disable=unsubscriptable-object
-                suggestion_type
-            ]
+                settings = self.settings.figmentators[  # pylint:disable=unsubscriptable-object
+                    suggestion_type
+                ]
 
-            async with self.install_lock:
-                working_set.resolve(settings.requires, installer=self.installer)
+                await self.loop.run_in_executor(
+                    None, working_set.resolve, settings.requires, None, self.installer
+                )
 
                 try:
                     model_cls = settings.cls.resolve()
@@ -154,10 +159,24 @@ class FigmentatorFactory:
                     raise ValueError("model_cls must be a subclass of Figmentator")
 
                 figmentator = model_cls(suggestion_type)
-                figmentator.startup(settings.properties)
+                await self.loop.run_in_executor(
+                    None, figmentator.startup, settings.properties
+                )
                 self.figmentators_by_type[suggestion_type] = figmentator
 
-        return self.figmentators_by_type[suggestion_type]
+            return self.figmentators_by_type[suggestion_type]
+
+    async def remove(self, figmentator: Figmentator):
+        """
+        Get a Figmentator by it's type. If there are valid settings for a
+        Figmentator it will instatiate it (and install any needed requirements.
+        """
+        async with self.lock:
+            suggestion_type = figmentator.suggestion_type
+            assert suggestion_type in self.figmentators_by_type
+
+            figmentator.shutdown()
+            del self.figmentators_by_type[suggestion_type]
 
     def installer(self, requirement):
         """ A method for using easy_install to install a requirement """
@@ -177,9 +196,17 @@ class FigmentatorFactory:
 figmentator_factory = FigmentatorFactory()
 
 
-async def get_figmentator(suggestion_type: SuggestionType):
+async def get_figmentator(suggestion_type: SuggestionType) -> Figmentator:
     """
     A method that acquires a Figmentator asynchronously, since it may require
     instantiating the Figmentator (and possibly installing requirements)
     """
     return await figmentator_factory.get(suggestion_type)
+
+
+async def remove_figmentator(figmentator: Figmentator):
+    """
+    A method that acquires a Figmentator asynchronously, since it may require
+    instantiating the Figmentator (and possibly installing requirements)
+    """
+    await figmentator_factory.remove(figmentator)

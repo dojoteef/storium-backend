@@ -61,13 +61,13 @@ if [ -z "$VOLUME" ] || [[ -z "$*" && ( "$CMD" != "ls" && "$CMD" != "term" ) ]]; 
 fi
 
 if [ "$CMD" == "cp" ]; then
-  readarray -t files < <(for f in "${@}"; do [[ -e "$SOURCE/$f" ]] && echo "/source/$f"; done)
-  docker run --rm -u "$USER" -v "$SOURCE":/source -v "$VOLUME":/dest -w /source alpine cp -L $OPTS "${files[@]}" "/dest/$TARGET"
+  readarray -t files < <(for f in "${@}"; do echo "/source/$f"; done)
+  docker run --rm -u "$USER" -v "$SOURCE":/source -v "$VOLUME":/dest -w /source alpine sh -c "cp -L $OPTS "'$(echo '"${files[*]}"')'" /dest/$TARGET"
 fi
 
 if [ "$CMD" == "rm" ]; then
   readarray -t files < <(for f in "${@}"; do echo "/dest/$f"; done)
-  docker run --rm -u "$USER" -v "$VOLUME":/dest -w /source alpine sh -c "rm $OPTS ${files[*]}"
+  docker run --rm -u "$USER" -v "$VOLUME":/dest -w /source alpine sh -c "rm $OPTS "'$(echo '"${files[*]}"')'
 fi
 
 if [ "$CMD" == "ls" ]; then
@@ -75,7 +75,7 @@ if [ "$CMD" == "ls" ]; then
   if [[ ${#files[*]} -eq 0 ]]; then
     files=("/dest")
   fi
-  docker run --rm -u "$USER" -v "$VOLUME":/dest alpine sh -c "ls -la $OPTS ${files[*]}"
+  docker run --rm -u "$USER" -v "$VOLUME":/dest alpine sh -c "ls -la $OPTS "'$(echo '"${files[*]}"')'
 fi
 
 if [ "$CMD" == "term" ]; then

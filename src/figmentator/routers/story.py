@@ -36,7 +36,8 @@ async def snapshot(
         cache_key = f"{figmentator.suggestion_type}:{story_id}"
         story_data = await cache.get(cache_key)
         preprocessed = figmentator.preprocess(story, story_data)
-        cache_updates.append(cache.set(cache_key, preprocessed))
+        if preprocessed:
+            cache_updates.append(cache.set(cache_key, preprocessed))
 
     if not cache_updates:
         raise HTTPException(HTTP_406_NOT_ACCEPTABLE, "Unable to process story!")

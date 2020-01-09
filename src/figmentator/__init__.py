@@ -52,3 +52,9 @@ def initialize_caches():
 async def initialize_figmentators():
     """ Initialize the configured figmentators """
     await Figmentators.startup()
+
+
+@app.on_event("shutdown")
+async def shutdown_figmentators():
+    """ Shutdown the configured figmentators """
+    await Figmentators.shutdown()
