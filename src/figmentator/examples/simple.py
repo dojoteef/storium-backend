@@ -114,7 +114,7 @@ feugiat in, orci. In hac habitasse platea dictumst."""
         entries: List[SceneEntry] = []
         all_entries: List[Optional[SceneEntry]] = []
         for context in contexts:
-            entry = context.entry.copy()
+            entry = context.entry
             all_entries.append(None)
 
             if not entry.description:

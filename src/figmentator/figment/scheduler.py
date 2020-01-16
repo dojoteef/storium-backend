@@ -289,11 +289,18 @@ class _FigmentSchedulerCollection:
 
     async def figmentate(
         self, suggestion_type: SuggestionType, context: FigmentContext
-    ) -> Optional[SceneEntry]:
+    ) -> Tuple[bool, Optional[SceneEntry]]:
         """
         Schedule the figmentator to run and return the result.
         """
-        return await self.schedulers[suggestion_type].figmentate(context)
+        suggestion = await self.schedulers[suggestion_type].figmentate(context)
+        if suggestion_type == SuggestionType.scene_entry:
+            if not suggestion or suggestion.description == context.entry.description:
+                return True, suggestion
+
+        # For some reason mypy wants me to cast the first value to a bool
+        # explicitly, otherwise it treats it as a Tuple[Range, None, bool]
+        return bool(context.range and not context.range.is_finite()), suggestion
 
 
 Figmentators = _FigmentSchedulerCollection()

@@ -1,7 +1,7 @@
 """
 This router handles the suggestion endpoints.
 """
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from aiocache import caches
 from pydantic import ValidationError
@@ -40,7 +40,7 @@ async def new(
     story_id: str = Path(
         ..., description="""The id of the story to generate the figment for."""
     ),
-    entry: Optional[SceneEntry] = Body(
+    entry: SceneEntry = Body(
         ..., description="""The current entry representing the move in progress"""
     ),
     suggestion_type: SuggestionType = Query(
@@ -55,7 +55,7 @@ async def new(
     if story_data is None:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="Unknown story")
 
-    context_dict: Dict[str, Any] = {"entry": entry, "data": story_data}
+    context_dict: Dict[str, Any] = {"data": story_data, "entry": entry.copy()}
     try:
         figment_range = request.headers.get("Range")
         if figment_range:
@@ -66,11 +66,11 @@ async def new(
         )
 
     context = FigmentContext(**context_dict)
-    entry = await Figmentators.figmentate(suggestion_type, context)
-    if entry is None:
+    completed, updated_entry = await Figmentators.figmentate(suggestion_type, context)
+    if updated_entry is None:
         raise HTTPException(HTTP_406_NOT_ACCEPTABLE, "Unable to generate suggestion!")
 
-    if context.range and not context.range.is_finite():  # pylint:disable=no-member
+    if not completed:
         response.status_code = HTTP_206_PARTIAL_CONTENT
 
-    return entry
+    return updated_entry
