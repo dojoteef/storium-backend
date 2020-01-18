@@ -298,9 +298,7 @@ class _FigmentSchedulerCollection:
             if not suggestion or suggestion.description == context.entry.description:
                 return True, suggestion
 
-        # For some reason mypy wants me to cast the first value to a bool
-        # explicitly, otherwise it treats it as a Tuple[Range, None, bool]
-        return bool(context.range and not context.range.is_finite()), suggestion
+        return not context.range or context.range.is_finite(), suggestion
 
 
 Figmentators = _FigmentSchedulerCollection()
