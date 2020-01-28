@@ -10,7 +10,6 @@ services:
       - figmentator-data:/var/lib/figmentator/
     runtime: nvidia
     environment:
-      - TIMEOUT=${TIMEOUT:-30}
       - FIG_CACHE_URL=redis://cache
       - PYTHONPATH=/var/lib/figmentator/
       - FIG_FACTORY_INSTALL_DIR=/var/lib/figmentator/

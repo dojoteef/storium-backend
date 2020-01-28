@@ -2,8 +2,6 @@
 
 PORT="${PORT:-8800}"
 HOST="${HOST:-0.0.0.0}"
-WORKERS="${WORKERS:-1}"
-TIMEOUT="${TIMEOUT:-30}"
 LOGLEVEL="${LOGLEVEL:-info}"
 
 uvicorn figmentator:app --reload --host $HOST --port $PORT --log-level $LOGLEVEL
