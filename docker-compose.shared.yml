@@ -15,6 +15,7 @@ services:
       - PYTHONPATH=/var/lib/figmentator/
       - FIG_FACTORY_INSTALL_DIR=/var/lib/figmentator/
       - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}
+    restart: unless-stopped
   cache:
     image: redis:5-alpine
     volumes:
@@ -22,5 +23,6 @@ services:
         source: ./redis.conf
         target: /usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: unless-stopped
 volumes:
   figmentator-data:
