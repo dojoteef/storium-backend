@@ -21,6 +21,12 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     scripts=["scripts/figment", "scripts/docker-volume"],
+    data_files=[
+        (
+            "share/figmentator",
+            ["resources/profanity.txt", "resources/character_map.json"],
+        )
+    ],
     install_requires=[
         "aiocache==0.11.1",
         "pydantic==1.1.1",

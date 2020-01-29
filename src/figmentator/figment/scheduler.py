@@ -24,7 +24,7 @@ from figmentator.models.storium import SceneEntry
 from figmentator.models.suggestion import SuggestionType
 from figmentator.figment.base import Figmentator
 from figmentator.figment.factory import get_figmentator, remove_figmentator
-from figmentator.utils import camel_case, snake_case
+from figmentator.utils import camel_case, snake_case, profanity
 
 
 async def execute(
@@ -189,6 +189,9 @@ class FigmentScheduler:
 
         self.suggestion_type = suggestion_type
         self.settings = _FigmentatorSchedulerSettings.settings[suggestion_type]
+        self.profanity = profanity.Profanity(
+            "resources/profanity.txt", "resources/character_map.json"
+        )
         logging.info("Using settings: %s", self.settings.json())
 
         self.queue: Queue = Queue()
@@ -254,9 +257,12 @@ class FigmentScheduler:
         future = self.loop.create_future()
         await self.queue.put((future, context))
 
-        result = await future
+        scene_entry = await future
+        if scene_entry:
+            # Make sure we filter profanity that the model might generate
+            scene_entry.description = self.profanity.filter(scene_entry.description)
 
-        return result
+        return scene_entry
 
 
 class _FigmentSchedulerCollection:

@@ -73,6 +73,7 @@ WORKDIR /var/www/figmentator
 COPY setup.py ./
 COPY src src
 COPY scripts scripts
+COPY resources resources
 
 # # Install build dependencies, then install app, then remove build dependencies
 # RUN apk add --no-cache --virtual .build-deps gcc libc-dev make \
