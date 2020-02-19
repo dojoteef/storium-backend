@@ -2,34 +2,19 @@
 A very basic example of a figmentator
 """
 import time
-import logging
 from typing import Any, Dict, List, Optional
-import unicodedata
 
-from figmentator.figment.base import Figmentator
+from figmentator.figment.base import CharacterEntryFigmentator
 from figmentator.models.figment import FigmentContext
-from figmentator.models.range import RangeUnits
-from figmentator.models.storium import SceneEntry
 from figmentator.models.suggestion import SuggestionType
 
 
-def NFC(text):
-    """
-    Normalize the unicode string into NFC form
-
-    Read more about that here:
-    https://docs.python.org/3/library/unicodedata.html#unicodedata.normalize
-    """
-    return unicodedata.normalize("NFC", text)
-
-
-class SimpleFigmentator(Figmentator):
+class SimpleFigmentator(CharacterEntryFigmentator):
     """
     A dead simple figmentator that generates useless scene_entry suggestions
     """
 
-    LOREM_IPSUM = NFC(
-        """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+    LOREM_IPSUM = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
 veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
 consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
@@ -48,15 +33,6 @@ adipiscing sapien, sed malesuada diam lacus eget erat. Cras mollis scelerisque
 nunc. Nullam arcu. Aliquam consequat. Curabitur augue lorem, dapibus quis,
 laoreet et, pretium ac, nisi. Aenean magna nisl, mollis quis, molestie eu,
 feugiat in, orci. In hac habitasse platea dictumst."""
-    )
-
-    # Due to using split(), the behavior when specifying a range in characters
-    # is different than what happens when specifying a range in words. We use
-    # the split version for words, so whitespace will be trimmed, e.g. newlines
-    # will be removed. For characters, these would be preserved. If this were
-    # not just a simple example to demonstrate the API, this would have to be
-    # dealt with more appropriately.
-    LOREM_IPSUM_SPLIT = LOREM_IPSUM.split()
 
     def __init__(self, suggestion_type: SuggestionType):
         """ Initialize the figmentator """
@@ -107,64 +83,19 @@ feugiat in, orci. In hac habitasse platea dictumst."""
         time.sleep(self.preprocess_time)  # simulate slow preprocessing
         return story_snapshot
 
-    def figmentate(self, contexts: List[FigmentContext]) -> List[Optional[SceneEntry]]:
+    def process(self, context: FigmentContext) -> Optional[Dict[str, Any]]:
         """
-        This method should generate a figment for each context in the list.
+        This method performs any processing needed before generating a suggestion
         """
-        entries: List[SceneEntry] = []
-        all_entries: List[Optional[SceneEntry]] = []
-        for context in contexts:
-            entry = context.entry
-            all_entries.append(None)
+        segment = self.validate(context)
 
-            if not entry.description:
-                entry.description = ""
+        assert segment is not None
+        assert context.range is not None
+        return {"text": context.range.unit.chunk(type(self).LOREM_IPSUM)[segment]}
 
-            text = type(self).LOREM_IPSUM
-            if context.range:
-                if len(context.range.ranges) > 1:
-                    logging.warning("Failed to generate text.")
-                    continue
-
-                entry_range = context.range.ranges[0]
-                if not entry_range.end:
-                    logging.warning("Failed to generate text.")
-                    continue
-
-                if context.range.unit == RangeUnits.words:
-                    text = type(self).LOREM_IPSUM_SPLIT
-                    index = len(entry.description.split())
-                else:
-                    index = len(NFC(entry.description))
-
-                if entry_range.start is not None and entry_range.start != index:
-                    logging.warning("Failed to generate text.")
-                    continue
-
-                range_end = (
-                    entry_range.end if entry_range.start else index + entry_range.end
-                )
-                new_text = text[index:range_end]
-
-                past_end = range_end - len(text)
-                if past_end > 0:
-                    # Wrap if needed, but include a space before wrapping
-                    new_text += [" "] if isinstance(new_text, list) else " "
-                    new_text += text[:past_end]
-
-                if context.range.unit == RangeUnits.words:
-                    if entry.description and not entry.description[:-1].isspace():
-                        # Add a starting space if needed
-                        new_text = [" "] + new_text
-
-                    # It's a list and we need a string
-                    new_text = " ".join(new_text)
-
-                text = new_text
-
-            entry.description += text
-            entries.append(entry)
-            all_entries[-1] = entry
-
+    def sample(self, processed: List[Dict[str, Any]]) -> List[str]:
+        """
+        This method generates a batch of character entry text
+        """
         time.sleep(self.generation_time)  # simulate a slow generation process
-        return all_entries
+        return [d["text"] for d in processed]

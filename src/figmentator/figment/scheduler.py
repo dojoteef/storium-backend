@@ -4,7 +4,7 @@ the desire for batching versus the need to generate realtime results. It does so
 having a threshold for how long to wait to collect a batch before executing the model.
 """
 import logging
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Tuple, Type, Union
 from asyncio import (
     Queue,
     Event,
@@ -20,11 +20,10 @@ from concurrent.futures import Executor, ProcessPoolExecutor, CancelledError
 from pydantic import BaseSettings, Field
 
 from figmentator.models.figment import FigmentContext
-from figmentator.models.storium import SceneEntry
 from figmentator.models.suggestion import SuggestionType
 from figmentator.figment.base import Figmentator
 from figmentator.figment.factory import get_figmentator, remove_figmentator
-from figmentator.utils import camel_case, snake_case, profanity
+from figmentator.utils import camel_case, snake_case
 
 
 async def execute(
@@ -189,9 +188,6 @@ class FigmentScheduler:
 
         self.suggestion_type = suggestion_type
         self.settings = _FigmentatorSchedulerSettings.settings[suggestion_type]
-        self.profanity = profanity.Profanity(
-            "resources/profanity.txt", "resources/character_map.json"
-        )
         logging.info("Using settings: %s", self.settings.json())
 
         self.queue: Queue = Queue()
@@ -250,19 +246,14 @@ class FigmentScheduler:
             async with self.figmentator:
                 await self.figmentator.process(self.queue, *zip(*tasks))
 
-    async def figmentate(self, context: FigmentContext) -> Optional[SceneEntry]:
+    async def figmentate(self, context: FigmentContext) -> FigmentContext:
         """
         Schedule the figmentator to run and return the result.
         """
         future = self.loop.create_future()
         await self.queue.put((future, context))
 
-        scene_entry = await future
-        if scene_entry:
-            # Make sure we filter profanity that the model might generate
-            scene_entry.description = self.profanity.filter(scene_entry.description)
-
-        return scene_entry
+        return await future
 
 
 class _FigmentSchedulerCollection:
@@ -295,16 +286,11 @@ class _FigmentSchedulerCollection:
 
     async def figmentate(
         self, suggestion_type: SuggestionType, context: FigmentContext
-    ) -> Tuple[bool, Optional[SceneEntry]]:
+    ) -> FigmentContext:
         """
         Schedule the figmentator to run and return the result.
         """
-        suggestion = await self.schedulers[suggestion_type].figmentate(context)
-        if suggestion_type == SuggestionType.scene_entry:
-            if not suggestion or suggestion.description == context.entry.description:
-                return True, suggestion
-
-        return not context.range or context.range.is_finite(), suggestion
+        return await self.schedulers[suggestion_type].figmentate(context)
 
 
 Figmentators = _FigmentSchedulerCollection()

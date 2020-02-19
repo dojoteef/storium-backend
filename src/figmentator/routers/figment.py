@@ -17,7 +17,7 @@ from starlette.status import (
 )
 
 from figmentator.models.range import Range
-from figmentator.models.figment import FigmentContext
+from figmentator.models.figment import FigmentContext, FigmentStatus
 from figmentator.models.storium import SceneEntry
 from figmentator.models.suggestion import SuggestionType
 from figmentator.figment.scheduler import Figmentators
@@ -66,11 +66,11 @@ async def new(
         )
 
     context = FigmentContext(**context_dict)
-    completed, updated_entry = await Figmentators.figmentate(suggestion_type, context)
-    if updated_entry is None:
+    context = await Figmentators.figmentate(suggestion_type, context)
+    if context.status == FigmentStatus.failed:
         raise HTTPException(HTTP_406_NOT_ACCEPTABLE, "Unable to generate suggestion!")
 
-    if not completed:
+    if context.status == FigmentStatus.partial:
         response.status_code = HTTP_206_PARTIAL_CONTENT
 
-    return updated_entry
+    return context.entry
