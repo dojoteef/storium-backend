@@ -7,9 +7,11 @@ from asyncio import get_event_loop, Lock
 from typing import Any, Dict, Type, List, Optional
 from pkg_resources import (
     working_set,
-    get_distribution,
+    find_distributions,
     parse_requirements,
+    Distribution,
     EntryPoint,
+    Environment,
     Requirement,
 )
 from setuptools import setup
@@ -118,6 +120,7 @@ class FigmentatorFactory:
     def __init__(self):
         """ Create the factory """
         self.lock = Lock()
+        self.env = Environment()
         self.loop = get_event_loop()
         self.figmentators_by_type = {}
         self.settings = FigmentatorFactorySettings()
@@ -146,9 +149,17 @@ class FigmentatorFactory:
                     suggestion_type
                 ]
 
-                await self.loop.run_in_executor(
-                    None, working_set.resolve, settings.requires, None, self.installer
+                requirements = await self.loop.run_in_executor(
+                    None,  # use default executor
+                    working_set.resolve,  # resolve model requirements
+                    settings.requires,  # list of requirements
+                    self.env,  # environment
+                    self.installer,  # installer for missing requirements
+                    True,  # whether to replace conflicting requirements
                 )
+
+                for requirement in requirements:
+                    working_set.add(requirement, replace=True)
 
                 try:
                     model_cls = settings.cls.resolve()
@@ -178,8 +189,27 @@ class FigmentatorFactory:
             figmentator.shutdown()
             del self.figmentators_by_type[suggestion_type]
 
-    def installer(self, requirement):
+    def get_distribution(self, requirement: Requirement) -> Optional[Distribution]:
+        """
+        Get a distribution that statisfies the requirement. Use
+        find_distributions so it looks on disk, thus can find newly installed
+        pacakges. """
+        for distribution in find_distributions(self.settings.install_dir):
+            if distribution in requirement:
+                return distribution
+
+        return None
+
+    def installer(self, requirement: Requirement) -> Optional[Distribution]:
         """ A method for using easy_install to install a requirement """
+        for dist in self.env[requirement.key]:
+            if dist not in requirement:
+                self.env.remove(dist)
+
+        # Use easy_install despite being deprecated as it is the only way to
+        # have multi-version package support. See:
+        # https://packaging.python.org/guides/multi-version-installs/
+        # https://packaging.python.org/discussions/pip-vs-easy-install/
         with shadow_argv(
             [
                 "",
@@ -190,7 +220,12 @@ class FigmentatorFactory:
             ]
         ):
             setup()
-            return get_distribution(requirement)
+
+        distribution = self.get_distribution(requirement)
+        if distribution:
+            working_set.add(distribution, replace=True)
+
+        return distribution
 
 
 figmentator_factory = FigmentatorFactory()
