@@ -34,7 +34,9 @@ class Profanity:
             word_regexes.append(self.get_regex_str(word))
 
         # Finally compile them all into one giant regex
-        self.regex = re.compile(rf'\b({"|".join(word_regexes)})(?=\s|\Z)')
+        self.regex = re.compile(
+            rf'\b({"|".join(word_regexes)})(?=\s|\Z)', re.IGNORECASE
+        )
 
     def get_regex_str(self, text: str) -> str:
         """
