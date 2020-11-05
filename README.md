@@ -1,7 +1,20 @@
-# Figmentator Web Service
+<div align="center">
+  <img src="https://storium.cs.umass.edu/static/figment.svg">
+</div>
 
-A figmentator generates figments of the imagination, i.e. suggestions for where
-to take a story next.
+# Storium Backend Web Service
+
+This is the official repository of the [backend web
+service](https://storium.cs.umass.edu) for the EMNLP 2020 long paper *[STORIUM:
+A Dataset and Evaluation Platform for Story
+Generation](https://arxiv.org/abs/2010.01717)*.
+
+## Python Package Naming
+
+You might ask yourself, what is a figmentator? A figmentator generates figments
+of the imagination. In the context of this code, it represents a story
+generation model. Why the weird name? Well it's distinctive and I was already
+[woolgathering](https://github.com/dojoteef/storium-frontend)...
 
 
 ## Usage
