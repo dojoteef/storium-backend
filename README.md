@@ -26,7 +26,7 @@ service.
 Afterward you can run `deploy-dev` or `make deploy-prod` to start the service.
 
 
-# Deployment
+## Deployment
 
 Our [evaluation platform](https://storium.cs.umass.edu) is designed to make it
 easy to deploy your story generation models, requiring the implementation of a
@@ -34,3 +34,15 @@ simple API to facilitate hosting. You can see a contrived example in
 [src/figmentator/examples/simple.py](src/figmentator/examples/simple.py), or a
 real example from our [GPT-2
 models](https://github.com/dojoteef/storium-gpt2#deployment].
+
+
+## Cite
+
+```bibtex
+@inproceedings{akoury2020storium,
+  Author = {Nader Akoury, Shufan Wang, Josh Whiting, Stephen Hood, Nanyun Peng and Mohit Iyyer},
+  Booktitle = {Empirical Methods for Natural Language Processing},
+  Year = "2020",
+  Title = {{STORIUM}: {A} {D}ataset and {E}valuation {P}latform for {S}tory {G}eneration}
+}
+```
