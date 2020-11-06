@@ -31,7 +31,7 @@ setup(
         "aiocache==0.11.1",
         "pydantic==1.1.1",
         "fastapi==0.45.0",
-        "uvicorn==0.10.3",
+        "uvicorn==0.12.2",
         "regex==2020.1.8",
         "async-generator==1.10;python_version<'3.7'",
         "async-exit-stack==1.0.1;python_version<'3.7'",
