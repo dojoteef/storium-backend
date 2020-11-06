@@ -33,7 +33,7 @@ easy to deploy your story generation models, requiring the implementation of a
 simple API to facilitate hosting. You can see a contrived example in
 [src/figmentator/examples/simple.py](src/figmentator/examples/simple.py), or a
 real example from our [GPT-2
-models](https://github.com/dojoteef/storium-gpt2#deployment].
+models](https://github.com/dojoteef/storium-gpt2#deployment).
 
 
 ## Cite
