@@ -3,20 +3,14 @@ A factory that creates concrete Figmentator instances and also acts as a registr
 getting the registered Figmentators.
 """
 import os
-from asyncio import get_event_loop, Lock
-from typing import Any, Dict, Type, List, Optional
-from pkg_resources import (
-    working_set,
-    find_distributions,
-    parse_requirements,
-    Distribution,
-    EntryPoint,
-    Environment,
-    Requirement,
-)
-from setuptools import setup
+import subprocess
+from asyncio import Lock, get_event_loop
+from typing import Any, Dict, List, Optional, Type
 
+from pkg_resources import (Distribution, EntryPoint, Environment, Requirement,
+                           find_distributions, parse_requirements, working_set)
 from pydantic import BaseModel, BaseSettings, Field, validator
+from setuptools import setup
 
 from figmentator.figment.base import Figmentator
 from figmentator.models.suggestion import SuggestionType
@@ -87,6 +81,11 @@ parameters.
 
 class FigmentatorFactorySettings(BaseSettings):
     """ Defines the settings for the figmentator factory """
+
+    multiversion: bool = Field(
+        False,
+        description="Whether to support multi-version python packages (uses easy_install)",
+    )
 
     install_dir: str = Field(
         os.path.abspath(os.curdir),
@@ -201,25 +200,38 @@ class FigmentatorFactory:
         return None
 
     def installer(self, requirement: Requirement) -> Optional[Distribution]:
-        """ A method for using easy_install to install a requirement """
+        """ A method for using easy_install or pip to install a requirement """
         for dist in self.env[requirement.key]:
             if dist not in requirement:
                 self.env.remove(dist)
 
-        # Use easy_install despite being deprecated as it is the only way to
-        # have multi-version package support. See:
-        # https://packaging.python.org/guides/multi-version-installs/
-        # https://packaging.python.org/discussions/pip-vs-easy-install/
-        with shadow_argv(
-            [
-                "",
-                "easy_install",
-                "--install-dir",
-                self.settings.install_dir,
-                str(requirement),
-            ]
-        ):
-            setup()
+        if self.settings.multiversion:
+            # Use easy_install despite being deprecated as it is the only way to
+            # have multi-version package support. See:
+            # https://packaging.python.org/guides/multi-version-installs/
+            # https://packaging.python.org/discussions/pip-vs-easy-install/
+            with shadow_argv(
+                [
+                    "",
+                    "easy_install",
+                    "--install-dir",
+                    self.settings.install_dir,
+                    str(requirement),
+                ]
+            ):
+                setup()
+        else:
+            # Use pip instead since we don't need multiversion support and pip is vastly
+            # easier to use (and supports wheels)
+            subprocess.run(
+                [
+                    "pip3",
+                    "install",
+                    "--target",
+                    self.settings.install_dir,
+                    str(requirement),
+                ]
+            )
 
         distribution = self.get_distribution(requirement)
         if distribution:
