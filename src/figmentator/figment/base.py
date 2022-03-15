@@ -85,7 +85,7 @@ class CharacterEntryFigmentator(Figmentator):  # pylint:disable=abstract-method
         raise NotImplementedError()
 
     @abstractmethod
-    def sample(self, processed: List[Dict[str, Any]]) -> List[str]:
+    def sample(self, processed: List[Dict[str, Any]]) -> List[Optional[str]]:
         """
         This method generates a batch of character entry text
         """
@@ -152,13 +152,19 @@ class CharacterEntryFigmentator(Figmentator):  # pylint:disable=abstract-method
         segments = iter(entry_segments)
 
         # Make sure we filter profanity that the model might generate
-        samples = (self.profanity.filter(s) for s in self.sample(processed_entries))
+        samples = (
+            (self.profanity.filter(s) if s else None)
+            for s in self.sample(processed_entries)
+        )
         for context in contexts:
             if context.status == FigmentStatus.failed:
                 continue
 
             sample = next(samples)
             segment = next(segments)
+            if not sample:
+                context.status = FigmentStatus.failed
+                continue
 
             assert context.range is not None
             assert context.entry.description is not None
